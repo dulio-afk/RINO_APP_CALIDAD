@@ -11,7 +11,25 @@ db.init_app(app)
 with app.app_context():
     # Crear tablas si no existen
     db.create_all()
+    # Verificar si el usuario ya existe
+    # Verificar si el usuario ya existe
+    # Verificar si el usuario ya existe
+    # Verificar si el usuario ya existe
+    # Verificar si el usuario ya existe
+    # Verificar si el usuario ya existe
+    # Verificar si el usuario ya existe
+    # Verificar si el usuario ya existe# Verificar si el usuario ya existe# Verificar si el usuario ya existe# Verificar si el usuario ya existe# Verificar si el usuario ya existe# Verificar si el usuario ya existe# Verificar si el usuario ya existe# Verificar si el usuario ya existe# Verificar si el usuario ya existe
+    # Verificar si el usuario ya existe
 
+    # Verificar si el usuario ya existe
+# Prueba de integración con SonarQube
+# Prueba de integración con SonarQube
+# Prueba de integración con SonarQube
+# Prueba de integración con SonarQube
+# Prueba de integración con SonarQube
+
+
+    # Verificar si el usuario ya existe
     # Verificar si el usuario ya existe
     if Usuario.query.filter_by(correo='admin@demo.com').first() is None:
         contrasena_plana = '123456'

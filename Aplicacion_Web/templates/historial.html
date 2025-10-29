@@ -1,0 +1,133 @@
+{% extends 'layout.html' %}
+
+{% block titulo %}Historial de Diagnósticos{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+  <div class="card shadow p-4">
+    <h2 class="mb-4 text-primary fw-bold">📋 Historial de Diagnósticos</h2>
+
+    {% if historial %}
+      <p class="text-muted">Se encontraron {{ historial|length }} registros en total.</p>
+
+      <!-- 🔍 Barra de búsqueda -->
+      <div class="row mb-3 align-items-center">
+        <div class="col-md-6">
+          <input type="text" id="busquedaHistorial" class="form-control" placeholder="🔍 Buscar paciente, grado, fecha, etc...">
+        </div>
+        <div class="col-md-6 text-end">
+          <div id="indicadorBusqueda" class="text-primary fw-semibold d-none">⌛ Buscando coincidencias...</div>
+        </div>
+      </div>
+
+      <!-- 🧾 Tabla -->
+      <div class="table-responsive">
+        <table id="tablaHistorial" class="table table-striped table-hover align-middle w-100">
+          <thead class="table-dark">
+            <tr>
+              <th>Paciente</th>
+              <th>Edad</th>
+              <th>Sexo</th>
+              <th>Grado</th>
+              <th>Confianza</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in historial %}
+            <tr>
+              <td>{{ item.paciente.nombre }} {{ item.paciente.apellido_paterno }}</td>
+              <td>{{ item.paciente.edad }}</td>
+              <td class="text-capitalize">{{ item.paciente.sexo }}</td>
+              {% set grado = item.diagnostico.grado_retinopatia %}
+              <td class="{% if grado == 'Grave' %}text-danger fw-bold{% elif grado == 'Moderada' %}text-warning fw-semibold{% else %}text-success fw-semibold{% endif %}">
+                {{ grado or 'N/A' }}
+              </td>
+              <td>{{ (item.diagnostico.confianza * 100) | round(2) }}%</td>
+              <td>
+                <span class="fecha-legible" data-fecha="{{ item.diagnostico.fecha_diagnostico.isoformat() }}">
+                  {{ item.diagnostico.fecha_diagnostico.strftime('%d/%m/%Y') }}
+                </span>
+              </td>
+              <td>
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-dark dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                    ⚙️ Acciones
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="{{ url_for('main.detalle_historial', id_diagnostico=item.diagnostico.id_diagnostico) }}">🔍 Ver detalles</a></li>
+                    {% set documento_asociado = item.examen.documentos[0] if item.examen.documentos else None %}
+                    {% if documento_asociado %}
+                      <li><a class="dropdown-item" href="{{ url_for('main.analizar_documento', id_documento=documento_asociado.id_documento) }}">📑 Analizar documento</a></li>
+                    {% else %}
+                      <li><span class="dropdown-item disabled">📄 Sin PDF</span></li>
+                    {% endif %}
+                    <li><a class="dropdown-item" href="{{ url_for('main.informacion_gemini', id_diagnostico=item.diagnostico.id_diagnostico) }}">🤖 Recomendaciones</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('main.historial_paciente', id_paciente=item.paciente.id_paciente) }}">📚 Historial completo</a></li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="alert alert-info" role="alert">
+        No hay diagnósticos registrados aún.
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+
+  <!-- 📦 Librerías CSS y JS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+  <!-- Bootstrap JS necesario para toggles y dropdowns -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/moment/locale/es.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      moment.locale('es'); // idioma español
+
+      const tabla = $('#tablaHistorial').DataTable({
+        language: {
+          url: '//cdn.datatables.net/plug-ins/1.13.5/i18n/es-ES.json'
+        },
+        pageLength: 10,
+        lengthMenu: [5, 10, 25, 50],
+        order: [[5, 'desc']],
+        dom: 'lrtip'  // length, info, paginación sin input
+      });
+
+      const inputBusqueda = document.getElementById('busquedaHistorial');
+      const indicador = document.getElementById('indicadorBusqueda');
+
+      inputBusqueda.addEventListener('input', function () {
+        indicador.classList.remove('d-none');
+        tabla.search(this.value).draw();
+        setTimeout(() => {
+          indicador.classList.add('d-none');
+        }, 500); // espera 0.5s para desaparecer
+      });
+
+      // Formatea fechas legibles (hace 2 días, etc)
+      document.querySelectorAll('.fecha-legible').forEach(function (el) {
+        const fecha = el.getAttribute('data-fecha');
+        if (fecha) {
+          const fechaRelativa = moment(fecha).fromNow();
+          el.innerHTML += `<br><small class="text-muted">${fechaRelativa}</small>`;
+        }
+      });
+    });
+  </script>
+{% endblock %}

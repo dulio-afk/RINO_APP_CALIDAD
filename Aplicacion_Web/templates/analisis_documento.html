@@ -1,0 +1,53 @@
+{% extends 'layout.html' %}
+{% block title %}Análisis del Documento Clínico{% endblock %}
+{% block contenido %} 
+<div class="container mt-4">
+
+  <h2 class="text-center text-primary mb-4">📋 Análisis del Documento Clínico</h2>
+
+  <!-- Información del Paciente -->
+  {% if paciente %}
+  <div class="card mb-4 border-info shadow">
+    <div class="card-body">
+      <h5 class="card-title text-info">🧑‍⚕️ Paciente:</h5>
+      <p class="card-text">
+        <strong>Nombre:</strong> {{ paciente.nombres }} {{ paciente.apellidos }}<br>
+        <strong>ID:</strong> {{ paciente.id_paciente }}
+      </p>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Información del Documento -->
+  {% if documento %}
+  <div class="card mb-4 border-secondary shadow">
+    <div class="card-body">
+      <h5 class="card-title text-secondary">📄 Documento Analizado:</h5>
+      <p class="card-text">
+        <strong>Nombre del archivo:</strong> {{ documento.ruta_documento.split('/')[-1] }}<br>
+        <strong>Fecha de subida:</strong> {{ documento.fecha_subida.strftime('%d/%m/%Y') }}
+      </p>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Análisis generado -->
+  <div class="card border-success shadow">
+    <div class="card-header bg-success text-white">
+      🧠 Resultado del Análisis Clínico con Gemini
+    </div>
+    <div class="card-body">
+      {% if analisis %}
+        <pre style="white-space: pre-wrap;">{{ analisis }}</pre>
+      {% else %}
+        <p class="text-muted">No se encontró análisis generado para este documento.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="text-center mt-4">
+    <a href="{{ url_for('main.historial') }}" class="btn btn-outline-primary">🔙 Volver al Historial</a>
+  </div>
+
+</div>
+{% endblock %}

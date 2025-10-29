@@ -1,0 +1,376 @@
+{% extends 'layout.html' %}
+{% block titulo %}Panel Principal{% endblock %}
+
+{% block contenido %}
+<!-- HERO -->
+<section class="text-center my-5">
+    <img src="{{ url_for('static', filename='retina-icon.png') }}" alt="Ícono Retina" width="80" class="mb-3">
+    <h2 class="fw-bold">Sistema de Detección de Retinopatía Diabética</h2>
+    <p class="text-muted lead">Tecnología al servicio de la salud visual</p>
+</section>
+
+<!-- RESUMEN ESTADÍSTICO -->
+<section class="row row-cols-1 row-cols-md-4 g-4 mb-5 text-center">
+    <div class="col" data-aos="fade-up">
+        <div class="card shadow border-0">
+            <div class="card-body">
+                <h6 class="text-uppercase text-muted">Pacientes Totales</h6>
+                <p class="display-6 fw-bold text-primary">{{ edades|length }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col" data-aos="fade-up" data-aos-delay="100">
+        <div class="card shadow border-0">
+            <div class="card-body">
+                <h6 class="text-uppercase text-muted">Grados Identificados</h6>
+                <p class="display-6 fw-bold text-danger">{{ conteo_grados|length }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col" data-aos="fade-up" data-aos-delay="200">
+        <div class="card shadow border-0">
+            <div class="card-body">
+                <h6 class="text-uppercase text-muted">Categorías Clínicas</h6>
+                <p class="display-6 fw-bold text-success">{{ categorias|length }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col" data-aos="fade-up" data-aos-delay="300">
+        <div class="card shadow border-0">
+            <div class="card-body">
+                <h6 class="text-uppercase text-muted">Distribución por Sexo</h6>
+                <p class="display-6 fw-bold text-secondary">{{ conteo_sexo | length }}</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ACCIONES -->
+<section class="row g-4 mb-5">
+    <div class="col-md-4" data-aos="zoom-in">
+        <div class="card shadow-lg border-0 h-100 text-center">
+            <div class="card-body">
+                <i class="bi bi-clock-history display-4 text-primary mb-3"></i>
+                <h5 class="card-title">Historial</h5>
+                <p class="card-text text-muted">Consulta diagnósticos anteriores realizados por el sistema.</p>
+                <a href="{{ url_for('main.historial') }}" class="btn btn-outline-primary btn-sm">Ver historial</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4" data-aos="zoom-in" data-aos-delay="100">
+        <div class="card shadow-lg border-0 h-100 text-center">
+            <div class="card-body">
+                <i class="bi bi-info-circle display-4 text-success mb-3"></i>
+                <h5 class="card-title">Información</h5>
+                <p class="card-text text-muted">Aprende sobre la enfermedad y cómo detectarla.</p>
+                <a href="{{ url_for('main.informacion') }}" class="btn btn-outline-success btn-sm">Ir a información</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4" data-aos="zoom-in" data-aos-delay="200">
+        <div class="card shadow-lg border-0 h-100 text-center">
+            <div class="card-body">
+                <i class="bi bi-eyeglasses display-4 text-danger mb-3"></i>
+                <h5 class="card-title">Diagnóstico IA</h5>
+                <p class="card-text text-muted">Sube una imagen para obtener un diagnóstico automatizado.</p>
+                <a href="{{ url_for('main.sandbox') }}" class="btn btn-outline-danger btn-sm">Ir al Sandbox</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- GRÁFICOS ESTADÍSTICOS -->
+{% if edades and conteo_grados and categorias and conteo_sexo %}
+<hr class="my-5">
+<h3 class="text-center mb-4">Análisis Estadístico de Pacientes</h3>
+
+<div id="chart-data"
+     data-edades='{{ edades | tojson | safe }}'
+     data-sexo='{{ conteo_sexo | tojson | safe }}'
+     data-categorias='{{ categorias | tojson | safe }}'
+     data-nube='{{ nube_observaciones | default([]) | tojson | safe }}'
+     data-grafo='{{ grafo_sintomas | tojson | safe }}'></div>
+
+<section class="row g-5">
+    <div class="col-md-6" data-aos="fade-right">
+        <h6 class="text-center text-muted">Distribución por Edad</h6>
+        <canvas id="graficoEdades"></canvas>
+    </div>
+    <div class="col-md-6" data-aos="fade-up">
+        <h6 class="text-center text-muted">Categorías Clínicas</h6>
+        <canvas id="graficoPorcentajes"></canvas>
+    </div>
+    <div class="col-md-12" data-aos="fade-up">
+        <h6 class="text-center text-muted">Distribución por Sexo</h6>
+        <canvas id="graficoSexo"></canvas>
+    </div>
+</section>
+
+<!-- BOTÓN PARA MOSTRAR GRAFO Y NUBE -->
+<div class="text-center my-5">
+    <button id="btnMostrarAnalisis" class="btn btn-outline-dark">
+        Ver análisis clínico con Gemini
+    </button>
+</div>
+
+<!-- SECCIÓN GRAFO + NUBE (OCULTO POR DEFECTO) -->
+<div id="seccionAnalisis" style="display: none;">
+    <hr class="my-5">
+    <h3 class="text-center mb-4">Análisis Clínico con Gemini</h3>
+    <section class="row g-5">
+        <!-- GRAFO -->
+        <div class="col-md-6" data-aos="fade-left">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h6 class="text-center text-muted mb-3">Conexión entre Síntomas (Grafo)</h6>
+                    <div id="grafoSintomas" style="height: 400px;"></div>
+                    <div class="text-end mt-3">
+                        <button class="btn btn-sm btn-outline-dark" onclick="expandirGrafico('grafoSintomas')">
+                            <i class="bi bi-arrows-fullscreen"></i> Ampliar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NUBE DE PALABRAS -->
+        <div class="col-md-6" data-aos="fade-up">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h6 class="text-center text-muted mb-3">Nube de Palabras de Observaciones</h6>
+                    <div id="nubePalabras" style="height: 400px; border-radius: 8px;"></div>
+                    <div class="text-end mt-3">
+                        <button class="btn btn-sm btn-outline-dark" onclick="expandirGrafico('nubePalabras')">
+                            <i class="bi bi-arrows-fullscreen"></i> Ampliar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Modal para vista ampliada -->
+<div class="modal fade" id="modalExpandir" tabindex="-1" aria-labelledby="modalExpandirLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalExpandirLabel">Vista ampliada</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div id="contenedorAmpliado" style="width:100%; height:600px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Usa la versión oficial de WordCloud2.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.1.2/wordcloud2.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+<script>
+  AOS.init();
+
+  // Datos de backend
+  const chartData = document.getElementById("chart-data");
+  const edades = JSON.parse(chartData.dataset.edades || '[]');
+  const categorias = JSON.parse(chartData.dataset.categorias || '{}');
+  const sexo = JSON.parse(chartData.dataset.sexo || '{}');
+  const nube = JSON.parse(chartData.dataset.nube || '[]');
+  const grafo = JSON.parse(chartData.dataset.grafo || '{}');
+
+    // Gráficos estadísticos
+    const edadesContadas = {};
+    edades.forEach(edad => {
+        edadesContadas[edad] = (edadesContadas[edad] || 0) + 1;
+    });
+
+    const randomColors = n => Array.from({ length: n }, () =>
+        `hsl(${Math.floor(Math.random() * 360)}, 70%, 60%)`
+    );
+
+    new Chart(document.getElementById("graficoEdades"), {
+        type: 'bar',
+        data: {
+            labels: Object.keys(edadesContadas),
+            datasets: [{
+                label: 'Cantidad por Edad',
+                data: Object.values(edadesContadas),
+                backgroundColor: randomColors(Object.keys(edadesContadas).length),
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: ctx => `Edad ${ctx.label}: ${ctx.raw} pacientes`
+                    }
+                },
+                legend: { display: false }
+            }
+        }
+    });
+
+    new Chart(document.getElementById("graficoPorcentajes"), {
+        type: 'pie',
+        data: {
+            labels: Object.keys(categorias),
+            datasets: [{
+                data: Object.values(categorias),
+                backgroundColor: randomColors(Object.keys(categorias).length)
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    new Chart(document.getElementById("graficoSexo"), {
+        type: 'bar',
+        data: {
+            labels: Object.keys(sexo),
+            datasets: [{
+                label: 'Distribución por Sexo',
+                data: Object.values(sexo),
+                backgroundColor: ['#6c5ce7', '#00b894'],
+                borderRadius: 8
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => `${ctx.label}: ${ctx.raw} pacientes`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    ticks: { precision: 0 }
+                }
+            }
+        }
+    });
+
+    
+    // Mostrar/Ocultar sección de análisis clínico
+    const btn = document.getElementById('btnMostrarAnalisis');
+  const seccion = document.getElementById('seccionAnalisis');
+  let renderizado = false;
+  btn.addEventListener('click', () => {
+    if (seccion.style.display === 'none') {
+      seccion.style.display = 'block';
+      btn.textContent = 'Ocultar análisis clínico';
+      if (!renderizado) {
+        renderizarAnalisisClinico();
+        renderizado = true;
+      }
+    } else {
+      seccion.style.display = 'none';
+      btn.textContent = 'Ver análisis clínico con Gemini';
+    }
+  });
+
+  function renderizarAnalisisClinico() {
+    // 1) Debug: comprueba qué llega
+    console.log("Términos para nube:", nube);
+    // 2) Si no hay términos, informamos
+    if (!Array.isArray(nube) || !nube.length) {
+      document.getElementById('nubePalabras').innerText = "No hay observaciones para mostrar.";
+    } else {
+      // 3) Convertir a [texto,peso]
+      const nubeList = nube.map(t => [t, 1]);
+      console.log("Lista formateada:", nubeList);
+
+      // 4) Renderizar nube (wordcloud2.js)
+      WordCloud(document.getElementById('nubePalabras'), {
+        list: nubeList,
+        gridSize: Math.round(16 * $('#nubePalabras').width() / 1024),
+        weightFactor: 3,
+        fontFamily: 'Roboto, sans-serif',
+        color: 'random-dark',
+        rotateRatio: 0.5,
+        backgroundColor: '#f8f9fa'
+      });
+    }
+
+    // 5) Renderizar grafo (sin cambios)
+    const nodes = new vis.DataSet(grafo.nodes || []);
+    const edges = new vis.DataSet(grafo.edges || []);
+    new vis.Network(
+      document.getElementById('grafoSintomas'),
+      { nodes, edges },
+      {
+        nodes: { shape: 'dot', size: 12, font: { size: 14 } },
+        edges: { arrows: 'to', color: '#aaa' },
+        physics: { stabilization: false }
+      }
+    );
+  }
+
+  function expandirGrafico(idOriginal) {
+  const original = document.getElementById(idOriginal);
+  const contenedor = document.getElementById('contenedorAmpliado');
+  contenedor.innerHTML = ''; // Limpiar modal
+
+  const clon = document.createElement('div');
+  clon.id = 'graficoExpandido';
+  clon.style.height = '580px';
+  clon.style.width = '100%';
+  contenedor.appendChild(clon);
+
+  // Mostrar el modal primero
+  const modal = new bootstrap.Modal(document.getElementById('modalExpandir'));
+  modal.show();
+
+  // Esperar a que el modal esté visible para renderizar correctamente
+  setTimeout(() => {
+    if (idOriginal === 'nubePalabras') {
+      if (!Array.isArray(nube) || !nube.length) {
+        clon.innerText = "No hay observaciones disponibles.";
+        return;
+      }
+      const nubeList = nube.map(t => [t, 1]);
+      WordCloud(clon, {
+        list: nubeList,
+        gridSize: Math.round(16 * clon.offsetWidth / 1024),
+        weightFactor: 20, // ← AUMENTA EL TAMAÑO DE LETRA
+        fontFamily: 'Roboto, sans-serif',
+        color: 'random-dark',
+        rotateRatio: 0.3,
+        backgroundColor: '#f8f9fa'
+      });
+    } else if (idOriginal === 'grafoSintomas') {
+      const nodes = new vis.DataSet(grafo.nodes || []);
+      const edges = new vis.DataSet(grafo.edges || []);
+      new vis.Network(
+        clon,
+        { nodes, edges },
+        {
+          nodes: { shape: 'dot', size: 20, font: { size: 18 } },
+          edges: { arrows: 'to', color: '#888' },
+          physics: { stabilization: false }
+        }
+      );
+    }
+  }, 300); // 300 ms para asegurar que el modal esté visible
+}
+  // Tooltips (requiere bootstrap.js en tu layout)
+  new bootstrap.Tooltip(document.body, { selector: '[data-bs-toggle="tooltip"]' });
+</script>
+
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends 'layout.html' %}
+
+{% block titulo %}Historia Clínica Automatizada{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4 mb-5">
+    <h2 class="mb-3">Historia Clínica Automatizada</h2>
+    <p class="text-muted">Sube la imagen de retina y completa la información clínica del paciente para iniciar el análisis con inteligencia artificial.</p>
+
+    <script src="{{ url_for('static', filename='preview.js') }}"></script>
+
+    <!-- Spinner oculto inicialmente -->
+    <div id="loadingSpinner" class="text-center my-4" style="display: none;">
+        <div class="spinner-border text-success" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Procesando...</span>
+        </div>
+        <p class="mt-2 text-muted">Analizando imagen con inteligencia artificial...</p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" id="formulario">
+
+        <!-- DATOS DEL PACIENTE -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label for="nombre" class="form-label">Nombre</label>
+                <input type="text" class="form-control" id="nombre" name="nombre" required>
+            </div>
+            <div class="col-md-4">
+                <label for="apellido_paterno" class="form-label">Apellido paterno</label>
+                <input type="text" class="form-control" id="apellido_paterno" name="apellido_paterno" required>
+            </div>
+            <div class="col-md-4">
+                <label for="apellido_materno" class="form-label">Apellido materno</label>
+                <input type="text" class="form-control" id="apellido_materno" name="apellido_materno" required>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label for="edad" class="form-label">Edad</label>
+                <input type="number" class="form-control" id="edad" name="edad" required>
+            </div>
+            <div class="col-md-4">
+                <label for="sexo" class="form-label">Sexo</label>
+                <select class="form-control" id="sexo" name="sexo" required>
+                    <option value="">Seleccionar</option>
+                    <option value="M">Masculino</option>
+                    <option value="F">Femenino</option>
+                </select>
+            </div>
+            <div class="col-md-4 position-relative">
+                <label for="dni" class="form-label">DNI / Identificación</label>
+                <input type="text" class="form-control" id="dni" name="dni" required autocomplete="off">
+                <ul id="dni-sugerencias" class="list-group position-absolute w-100" style="z-index: 1000;"></ul>
+            </div>
+        </div>
+
+        <!-- SIGNOS VITALES Y ANÁLISIS -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="glucosa" class="form-label">Nivel de glucosa (mg/dL)</label>
+                <input type="number" class="form-control" id="glucosa" name="glucosa">
+            </div>
+            <div class="col-md-6">
+                <label for="presion" class="form-label">Presión arterial (mmHg)</label>
+                <input type="text" class="form-control" id="presion" name="presion">
+            </div>
+        </div>
+
+        <!-- SÍNTOMAS Y OBSERVACIONES -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="sintomas" class="form-label">Síntomas</label>
+                <textarea class="form-control" id="sintomas" name="sintomas" rows="4" placeholder="Ej: visión borrosa, dolor ocular, etc."></textarea>
+            </div>
+            <div class="col-md-6">
+                <label for="observaciones" class="form-label">Observaciones adicionales</label>
+                <textarea class="form-control" id="observaciones" name="observaciones" rows="4" placeholder="Ej: antecedentes médicos, reacciones, etc."></textarea>
+            </div>
+        </div>
+
+        <!-- DOCUMENTOS CLÍNICOS ADICIONALES -->
+        <div class="mb-3">
+            <label for="otros_archivos" class="form-label">Subir exámenes clínicos (PDF o imagen)</label>
+            <input type="file" class="form-control" id="otros_archivos" name="otros_archivos[]" accept=".pdf,image/*" multiple>
+            <small class="form-text text-muted">Puedes subir hasta 5 archivos complementarios (PDF, JPG, PNG, etc.).</small>
+        </div>
+
+        <!-- IMAGEN DE RETINA -->
+        <div class="mb-3">
+            <label for="imagen" class="form-label">Imagen de retina</label>
+            <input type="file" class="form-control" id="imagen" name="imagen" accept="image/*" required>
+        </div>
+
+        <!-- BOTÓN DE ENVÍO -->
+        <div id="botonEnviar">
+            <button type="submit" class="btn btn-success">📈 Procesar diagnóstico</button>
+        </div>
+    </form>
+
+    <!-- Spinner al enviar formulario -->
+    <script>
+        document.getElementById("formulario").addEventListener("submit", function () {
+            document.getElementById("botonEnviar").style.display = "none";
+            document.getElementById("loadingSpinner").style.display = "block";
+        });
+    </script>
+
+    <!-- JS para sugerencias por DNI -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const dniInput = document.getElementById('dni');
+            const sugerencias = document.getElementById('dni-sugerencias');
+
+            dniInput.addEventListener('input', function () {
+                const dni = this.value.trim();
+                if (dni.length === 0) {
+                    sugerencias.innerHTML = '';
+                    return;
+                }
+
+                fetch(`/buscar_paciente?dni=${dni}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        sugerencias.innerHTML = '';
+                        data.forEach(paciente => {
+                            const item = document.createElement('li');
+                            item.classList.add('list-group-item', 'list-group-item-action');
+                            item.textContent = `${paciente.dni} - ${paciente.nombre} ${paciente.apellido_paterno}`;
+                            item.addEventListener('click', () => {
+                                dniInput.value = paciente.dni;
+                                document.getElementById('nombre').value = paciente.nombre;
+                                document.getElementById('apellido_paterno').value = paciente.apellido_paterno;
+                                document.getElementById('apellido_materno').value = paciente.apellido_materno;
+                                document.getElementById('edad').value = paciente.edad;
+                                document.getElementById('sexo').value = paciente.sexo;
+                                sugerencias.innerHTML = '';
+                            });
+                            sugerencias.appendChild(item);
+                        });
+                    });
+            });
+
+            // Ocultar sugerencias si se hace clic fuera
+            document.addEventListener('click', function (e) {
+                if (!sugerencias.contains(e.target) && e.target !== dniInput) {
+                    sugerencias.innerHTML = '';
+                }
+            });
+        });
+    </script>
+</div>
+{% endblock %}

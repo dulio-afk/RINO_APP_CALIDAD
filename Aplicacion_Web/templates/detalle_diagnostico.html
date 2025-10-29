@@ -1,0 +1,74 @@
+{% extends 'layout.html' %}
+
+{% block contenido %}
+<div class="container mt-4">
+  <div class="card shadow p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="mb-0">🧠 Detalle del Diagnóstico</h2>
+      <!-- Botón de descarga PDF -->
+      <a href="{{ url_for('main.exportar_diagnostico_pdf', id_diagnostico=diagnostico.id_diagnostico) }}" 
+         class="btn btn-outline-danger">
+        <i class="fas fa-file-pdf"></i> Descargar PDF
+      </a>
+    </div>
+
+    <!-- Información del Paciente -->
+    <h5 class="text-primary">👤 Información del Paciente</h5>
+    <ul class="list-group list-group-flush mb-3">
+      <li class="list-group-item"><strong>Nombre:</strong> {{ paciente.nombre }} {{ paciente.apellido_paterno }} {{ paciente.apellido_materno }}</li>
+      <li class="list-group-item"><strong>DNI:</strong> {{ paciente.dni or "No registrado" }}</li>
+      <li class="list-group-item"><strong>Edad:</strong> {{ paciente.edad }} años</li>
+      <li class="list-group-item"><strong>Sexo:</strong> {{ paciente.sexo }}</li>
+      <li class="list-group-item"><strong>Fecha de Registro:</strong> {{ paciente.fecha_registro.strftime('%d/%m/%Y') }}</li>
+    </ul>
+
+    <!-- Examen Clínico -->
+    <h5 class="text-success">🧪 Examen Clínico</h5>
+    <ul class="list-group list-group-flush mb-3">
+      <li class="list-group-item"><strong>Fecha del Examen:</strong> {{ examen.fecha_examen.strftime('%d/%m/%Y') }}</li>
+      <li class="list-group-item"><strong>Nivel de Glucosa:</strong> {{ examen.nivel_glucosa }} mg/dL</li>
+      <li class="list-group-item"><strong>Presión Arterial:</strong> {{ examen.presion }}</li>
+      <li class="list-group-item"><strong>Síntomas:</strong> {{ examen.sintomas or "No especificados" }}</li>
+      <li class="list-group-item"><strong>Observaciones:</strong> {{ examen.observaciones or "No registradas" }}</li>
+    </ul>
+
+    <!-- Diagnóstico del Modelo -->
+    {% if diagnostico %}
+    <h5 class="text-warning">🧠 Diagnóstico del Modelo</h5>
+    <ul class="list-group list-group-flush mb-3">
+      <li class="list-group-item"><strong>Clase:</strong> {{ diagnostico.clase_predicha }}</li>
+      <li class="list-group-item"><strong>Grado:</strong> {{ diagnostico.grado_retinopatia }}</li>
+      <li class="list-group-item"><strong>Confianza:</strong> {{ (diagnostico.confianza * 100)|round(2) }}%</li>
+    </ul>
+    {% endif %}
+
+    <!-- Imagen de Retina -->
+    <h5 class="text-danger">📷 Imagen de Retina</h5>
+    {% if imagen %}
+      <div class="text-center mb-3">
+        <img src="{{ url_for('static', filename=imagen.ruta_imagen | replace('\\', '/') | replace('Aplicacion_Web/static/', '') ) }}" class="img-thumbnail" width="400">
+      </div>
+    {% else %}
+      <p class="text-muted">No se encontró imagen registrada para este examen.</p>
+    {% endif %}
+
+    <!-- Documentos Adjuntos -->
+    <h5 class="text-info">📎 Documentos Adjuntos</h5>
+    {% if documentos %}
+      <ul class="list-group list-group-flush mb-2">
+        {% for doc in documentos %}
+          <li class="list-group-item">
+            <a href="{{ url_for('static', filename=doc.ruta_documento | replace('\\', '/') | replace('Aplicacion_Web/static/', '') ) }}" target="_blank" download>
+              {{ doc.ruta_documento.split('/')[-1] }}
+            </a>
+            <span class="text-muted small"> | Subido el {{ doc.fecha_subida.strftime('%d/%m/%Y') }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-muted">No hay documentos registrados.</p>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'layout.html' %}
+
+{% block contenido %}
+<div class="container mt-4">
+  <div class="card shadow p-4">
+    <h2 class="mb-3 text-center">🤖 Recomendación Personalizada</h2>
+
+    <div class="mb-4 text-center">
+      <h5 class="fw-bold">{{ paciente.nombre }} {{ paciente.apellido_paterno }} {{ paciente.apellido_materno }}</h5>
+      <p class="text-muted mb-1">Edad: {{ paciente.edad }} años | Sexo: {{ paciente.sexo }}</p>
+      <p class="text-muted">Fecha de diagnóstico: {{ diagnostico.fecha_diagnostico.strftime('%d/%m/%Y') }}</p>
+    </div>
+
+    {% if recomendacion %}
+      <div class="alert alert-success" role="alert">
+        Esta recomendación fue generada automáticamente por un sistema de inteligencia artificial con base en tus datos clínicos y documentos disponibles. Recuerda que **no reemplaza una consulta médica presencial**.
+      </div>
+
+      <div class="bg-light rounded p-4 border">
+        <pre style="white-space: pre-wrap;">{{ recomendacion }}</pre>
+      </div>
+    {% else %}
+      <div class="alert alert-warning text-center">
+        No se pudo generar una recomendación para este diagnóstico.
+      </div>
+    {% endif %}
+
+    <div class="text-end mt-4">
+      <a href="{{ url_for('main.historial') }}" class="btn btn-outline-secondary">🔙 Volver al historial</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

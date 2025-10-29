@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Diagnóstico</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        h1, h2 { color: #2c3e50; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 8px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h1>Reporte de Diagnóstico</h1>
+    <p><strong>Paciente:</strong> {{ paciente.nombre }}</p>
+    <p><strong>Edad:</strong> {{ paciente.edad }}</p>
+    <p><strong>Fecha:</strong> {{ diagnostico.fecha.strftime('%d/%m/%Y') }}</p>
+    <p><strong>Diagnóstico:</strong> {{ diagnostico.resultado }}</p>
+
+    {% if imagen %}
+    <h2>Imagen de Retina</h2>
+    <img src="{{ url_for('static', filename='imagenes/' + imagen.ruta) }}" width="300">
+    {% endif %}
+
+    {% if examen %}
+    <h2>Examen Clínico</h2>
+    <table>
+        <tr>
+            <th>Presión Ocular</th>
+            <td>{{ examen.presion_ocular }}</td>
+        </tr>
+        <tr>
+            <th>Observaciones</th>
+            <td>{{ examen.observaciones }}</td>
+        </tr>
+    </table>
+    {% endif %}
+</body>
+</html>

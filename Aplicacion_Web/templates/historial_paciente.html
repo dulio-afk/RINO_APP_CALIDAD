@@ -1,0 +1,207 @@
+{% extends 'layout.html' %}
+
+{% block contenido %}
+<div class="container mt-4">
+  <div class="card shadow p-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="mb-0">🧾 Historial Clínico de {{ paciente.nombre }} {{ paciente.apellido_paterno }}</h2>
+    </div>
+    
+    <a href="{{ url_for('main.descargar_pdf', id_paciente=paciente.id_paciente) }}" class="btn btn-danger">
+      Descargar informe completo en PDF
+    </a>
+
+    {% if historial %}
+    <!-- 🧍‍♂️ Información resumida del paciente -->
+    <div class="mb-4">
+      <p><strong>🆔 DNI:</strong> {{ paciente.dni }}</p>
+      <p><strong>🎂 Edad:</strong> {{ paciente.edad }} años</p>
+      <p><strong>📅 Último Examen:</strong> {{ historial[0].examen.fecha_examen.strftime('%d/%m/%Y') }}</p>
+    </div>
+
+    <!-- 🎠 Carrusel de Diagnósticos -->
+    <div id="carruselDiagnosticos" class="carousel slide mb-5" data-bs-ride="carousel">
+      <div class="carousel-inner">
+        {% for item in historial %}
+        <div class="carousel-item {% if loop.first %}active{% endif %}">
+          <div class="d-flex justify-content-center">
+            <div class="card shadow-sm" style="width: 22rem;">
+              {% if item.imagen %}
+              <img src="{{ url_for('static', filename=item.imagen.ruta_imagen | replace('Aplicacion_Web/static/', '') | replace('\\', '/') ) }}"
+                   class="card-img-top" style="height: 250px; object-fit: cover;" alt="Retina">
+              {% else %}
+              <img src="{{ url_for('static', filename='img/no-image.png') }}" class="card-img-top" alt="Sin imagen">
+              {% endif %}
+              <div class="card-body text-center">
+                <h5 class="card-title">🩺 {{ item.diagnostico.grado_retinopatia or 'N/A' }}</h5>
+                <p class="text-muted mb-1">🗓 {{ item.diagnostico.fecha_diagnostico.strftime('%d/%m/%Y') }}</p>
+                <p class="fw-bold text-success">✔️ Confianza: {{ (item.diagnostico.confianza * 100) | round(2) }}%</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#carruselDiagnosticos" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon bg-dark rounded-circle p-2"></span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#carruselDiagnosticos" data-bs-slide="next">
+        <span class="carousel-control-next-icon bg-dark rounded-circle p-2"></span>
+      </button>
+    </div>
+
+    <!-- 📊 Sección de Gráficos -->
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <h5 class="card-title text-info text-center mb-3">📉 Evolución del Diagnóstico</h5>
+            <canvas id="graficoDiagnostico"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <h5 class="card-title text-primary text-center mb-3">📊 Frecuencia por Grado</h5>
+            <canvas id="graficoBarras"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% else %}
+    <div class="alert alert-warning text-center mt-4">
+      No hay historial clínico disponible para este paciente.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{% if historial %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const gradoMap = {
+    "Sin signos": 0,
+    "Leve": 1,
+    "Moderada": 2,
+    "Severa": 3,
+    "Proliferativa": 4
+  };
+
+  const etiquetas = {{ fechas | tojson }};
+  const gradosTexto = {{ grados | tojson }};
+  const gradosNumericos = gradosTexto.map(g => gradoMap[g] ?? null);
+  const confianzas = {{ confianzas | tojson }};
+  const confianzaPorcentual = confianzas.map(c => c * 100);
+
+  // 📈 Evolución del diagnóstico
+  new Chart(document.getElementById('graficoDiagnostico'), {
+    type: 'line',
+    data: {
+      labels: etiquetas,
+      datasets: [
+        {
+          label: '🩺 Grado de Retinopatía',
+          data: gradosNumericos,
+          borderColor: '#e74c3c',
+          backgroundColor: 'rgba(231,76,60,0.1)',
+          yAxisID: 'y1',
+          fill: true,
+          tension: 0.4
+        },
+        {
+          label: '✅ Confianza (%)',
+          data: confianzaPorcentual,
+          borderColor: '#2980b9',
+          backgroundColor: 'rgba(41,128,185,0.1)',
+          yAxisID: 'y2',
+          fill: true,
+          tension: 0.4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        y1: {
+          type: 'linear',
+          position: 'left',
+          beginAtZero: true,
+          max: 4,
+          title: { display: true, text: 'Grado' },
+          ticks: {
+            stepSize: 1,
+            callback: v => Object.entries(gradoMap).find(([k, val]) => val === v)?.[0] ?? v
+          }
+        },
+        y2: {
+          type: 'linear',
+          position: 'right',
+          beginAtZero: true,
+          max: 100,
+          title: { display: true, text: 'Confianza (%)' },
+          grid: { drawOnChartArea: false }
+        }
+      },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              if (ctx.dataset.label.includes('Grado')) {
+                const texto = Object.entries(gradoMap).find(([k, v]) => v === ctx.raw)?.[0] ?? ctx.raw;
+                return `${ctx.dataset.label}: ${texto} (${ctx.raw})`;
+              }
+              return `${ctx.dataset.label}: ${ctx.raw.toFixed(2)}%`;
+            }
+          }
+        },
+        legend: { position: 'bottom' }
+      }
+    }
+  });
+
+  // 📊 Gráfico de barras: frecuencia por grado
+  const conteoGrados = {{ conteo_grados | tojson }};
+  const etiquetasBarras = Object.keys(gradoMap);
+  const valoresBarras = etiquetasBarras.map(g => conteoGrados[g] || 0);
+
+  new Chart(document.getElementById('graficoBarras'), {
+    type: 'bar',
+    data: {
+      labels: etiquetasBarras,
+      datasets: [{
+        label: 'Número de Diagnósticos',
+        data: valoresBarras,
+        backgroundColor: '#2ecc71',
+        borderColor: '#27ae60',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1 }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.label}: ${ctx.raw} casos`
+          }
+        }
+      }
+    }
+  });
+</script>
+{% endif %}
+{% endblock %}

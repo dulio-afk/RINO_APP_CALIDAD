@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Informe de Diagnóstico</title>
+    <style>
+        body {
+            font-family: DejaVu Sans, sans-serif;
+            font-size: 11px;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .titulo {
+            text-align: center;
+            background-color: #0056b3;
+            color: white;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        h2 {
+            color: #0d6efd;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            margin-bottom: 10px;
+        }
+
+        p, li {
+            margin: 3px 0;
+        }
+
+        ul {
+            padding-left: 15px;
+        }
+
+        .seccion {
+            margin-bottom: 20px;
+        }
+
+        .imagen-retina {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .imagen-retina img {
+            width: 300px;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 10px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="titulo">🧠 Informe de Diagnóstico de Retinopatía Diabética</div>
+
+    <div class="seccion">
+        <h2>👤 Información del Paciente</h2>
+        <p><strong>Nombre:</strong> {{ paciente.nombre }} {{ paciente.apellido_paterno }} {{ paciente.apellido_materno }}</p>
+        <p><strong>DNI:</strong> {{ paciente.dni or "No registrado" }}</p>
+        <p><strong>Edad:</strong> {{ paciente.edad }} años</p>
+        <p><strong>Sexo:</strong> {{ paciente.sexo }}</p>
+        <p><strong>Fecha de Registro:</strong> {{ paciente.fecha_registro.strftime('%d/%m/%Y') }}</p>
+    </div>
+
+    <div class="seccion">
+        <h2>🧪 Examen Clínico</h2>
+        {% if examen %}
+            <p><strong>Fecha del Examen:</strong> {{ examen.fecha_examen.strftime('%d/%m/%Y') }}</p>
+            <p><strong>Nivel de Glucosa:</strong> {{ examen.nivel_glucosa }} mg/dL</p>
+            <p><strong>Presión Arterial:</strong> {{ examen.presion }}</p>
+            <p><strong>Síntomas:</strong> {{ examen.sintomas or "No especificados" }}</p>
+            <p><strong>Observaciones:</strong> {{ examen.observaciones or "No registradas" }}</p>
+        {% else %}
+            <p>No se encontró información del examen clínico.</p>
+        {% endif %}
+    </div>
+
+    <div class="seccion">
+        <h2>📊 Diagnóstico del Modelo</h2>
+        {% if diagnostico %}
+            <p><strong>Clase:</strong> {{ diagnostico.clase_predicha }}</p>
+            <p><strong>Grado:</strong> {{ diagnostico.grado_retinopatia }}</p>
+            <p><strong>Confianza:</strong> {{ (diagnostico.confianza * 100)|round(2) }}%</p>
+        {% else %}
+            <p>No se encontró información del diagnóstico.</p>
+        {% endif %}
+    </div>
+
+    <div class="seccion imagen-retina">
+        <h2>📷 Imagen de Retina</h2>
+        {% if imagen %}
+            <img src="{{ imagen_path }}" alt="Imagen de Retina">
+        {% else %}
+            <p>No se encontró imagen registrada para este examen.</p>
+        {% endif %}
+    </div>
+
+    <div class="seccion">
+        <h2>📎 Documentos Adjuntos</h2>
+        {% if documentos %}
+            <ul>
+                {% for doc in documentos %}
+                    <li>{{ doc.ruta_documento.split('/')[-1] }} — <em>Subido el {{ doc.fecha_subida.strftime('%d/%m/%Y') }}</em></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No hay documentos registrados.</p>
+        {% endif %}
+    </div>
+
+    <div class="footer">
+        Generado automáticamente por el sistema de detección de retinopatía diabética.
+    </div>
+
+</body>
+</html>

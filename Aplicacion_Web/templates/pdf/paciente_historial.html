@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: "Arial", sans-serif;
+      font-size: 12px;
+      margin: 40px;
+      color: #333;
+    }
+    header, footer {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    h1, h2, h3 {
+      color: #003366;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 4px;
+      margin-top: 30px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 20px 0;
+    }
+    th, td {
+      border: 1px solid #888;
+      padding: 6px;
+      text-align: left;
+    }
+    .img {
+      width: 100%;
+      margin-bottom: 15px;
+    }
+    .logo {
+      width: 100px;
+      float: right;
+    }
+    .header-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .firma {
+      margin-top: 40px;
+    }
+    .firma p {
+      margin: 4px 0;
+    }
+    .observaciones {
+      background: #f9f9f9;
+      padding: 10px;
+      border-left: 4px solid #003366;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header-info">
+    <div>
+      <h1>Instituto Oftalmológico San José</h1>
+      <p><strong>Dirección:</strong> Av. Salud Visual 123, Chincha</p>
+      <p><strong>Teléfono:</strong> (01) 123-4567 | <strong>Email:</strong> contacto@oftalmo.pe</p>
+    </div>
+    <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Ophthalmoscope_icon.svg/120px-Ophthalmoscope_icon.svg.png">
+  </div>
+
+  <h2>Datos del Paciente</h2>
+  <table>
+    <tr><th>Nombre</th><td>{{ paciente.nombre }}</td></tr>
+    <tr><th>Edad</th><td>{{ paciente.edad }}</td></tr>
+    <tr><th>DNI</th><td>{{ paciente.dni }}</td></tr>
+    <tr><th>Género</th><td>{{ paciente.genero }}</td></tr>
+    <tr><th>Correo</th><td>{{ paciente.correo }}</td></tr>
+    <tr><th>Teléfono</th><td>{{ paciente.telefono }}</td></tr>
+    <tr><th>Dirección</th><td>{{ paciente.direccion }}</td></tr>
+  </table>
+
+  <h2>Historial de Diagnósticos</h2>
+  <table>
+    <thead>
+      <tr><th>Fecha</th><th>Grado</th><th>Confianza</th><th>Descripción</th><th>Imagen Retina</th></tr>
+    </thead>
+    <tbody>
+      {% for diag in diagnosticos %}
+      <tr>
+        <td>{{ diag.fecha_diagnostico.strftime('%d/%m/%Y') }}</td>
+        <td>{{ diag.grado_retinopatia }}</td>
+        <td>{{ diag.nivel_confianza }}%</td>
+        <td>{{ diag.descripcion }}</td>
+        <td>
+          {% if diag.imagen_base64 %}
+          <img src="data:image/png;base64,{{ diag.imagen_base64 }}" width="80">
+          {% else %}
+          No disponible
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Evolución de Diagnósticos</h2>
+  <img class="img" src="data:image/png;base64,{{ grafico_grado }}" alt="Gráfico de Grados" />
+
+  <h2>Nivel de Confianza de la IA</h2>
+  <img class="img" src="data:image/png;base64,{{ grafico_confianza }}" alt="Gráfico de Confianza" />
+
+  <h2>Exámenes Clínicos Relacionados</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Fecha</th>
+        <th>Descripción</th>
+        <th>Presión Ocular</th>
+        <th>Glucosa</th>
+        <th>HbA1c</th>
+        <th>Observaciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ex in examenes %}
+      <tr>
+        <td>{{ ex.fecha_examen.strftime('%d/%m/%Y') }}</td>
+        <td>{{ ex.descripcion }}</td>
+        <td>{{ ex.presion_ocular }} mmHg</td>
+        <td>{{ ex.glucosa }} mg/dL</td>
+        <td>{{ ex.hba1c }}%</td>
+        <td>{{ ex.observaciones }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Documentos Adjuntos</h2>
+  <ul>
+    {% for doc in documentos %}
+    <li><strong>{{ doc.tipo_documento }}:</strong> {{ doc.nombre_documento }}</li>
+    {% endfor %}
+  </ul>
+
+  <h2>Recomendaciones Médicas</h2>
+  <div class="observaciones">
+    <p>{{ recomendaciones_ia }}</p>
+  </div>
+
+  <div class="firma">
+    <p><strong>Dr. Juan Pérez</strong></p>
+    <p>Especialista en Retina y Vítreo</p>
+    <p><strong>Fecha de emisión:</strong> {{ fecha_generacion.strftime('%d/%m/%Y %H:%M') }}</p>
+    <p>Firma: _________________________</p>
+  </div>
+
+  <footer>
+    <p>© Instituto Oftalmológico San José - Informe confidencial generado automáticamente</p>
+  </footer>
+
+</body>
+</html>

@@ -22,6 +22,11 @@ with app.app_context():
     # Verificar si el usuario ya existe
 
     # Verificar si el usuario ya existe
+# Prueba de integración con SonarQube
+# Prueba de integración con SonarQube
+# Prueba de integración con SonarQube
+# Prueba de integración con SonarQube
+# Prueba de integración con SonarQube
 
 
     # Verificar si el usuario ya existe

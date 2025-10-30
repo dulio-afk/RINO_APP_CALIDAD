@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        PYTHON = 'python3'
+        PYTHON = 'python'
     }
 
     stages {
@@ -16,10 +16,10 @@ pipeline {
         stage('Instalar dependencias') {
             steps {
                 echo '⚙️ Creando entorno virtual e instalando dependencias...'
-                sh '''
-                ${PYTHON} -m venv venv
-                . venv/bin/activate
-                pip install --upgrade pip
+                bat '''
+                %PYTHON% -m venv venv
+                call venv\\Scripts\\activate
+                python -m pip install --upgrade pip
                 pip install -r requirements.txt
                 '''
             }
@@ -28,9 +28,9 @@ pipeline {
         stage('Ejecutar pruebas') {
             steps {
                 echo '🧪 Ejecutando pruebas Pytest...'
-                sh '''
-                . venv/bin/activate
-                pytest --maxfail=1 --disable-warnings -q --junitxml=tests/reports/resultados.xml
+                bat '''
+                call venv\\Scripts\\activate
+                pytest --maxfail=1 --disable-warnings -q --junitxml=tests\\reports\\resultados.xml
                 '''
             }
         }
@@ -38,7 +38,7 @@ pipeline {
 
     post {
         always {
-            junit 'tests/reports/*.xml'
+            junit 'tests\\reports\\*.xml'
         }
         success {
             echo '✅ Todas las pruebas pasaron correctamente.'

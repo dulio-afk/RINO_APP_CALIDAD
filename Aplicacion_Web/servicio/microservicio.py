@@ -1,3 +1,5 @@
+"""
+
 # Aplicacion_Web/servicio/microservicio.py
 import requests
 import logging
@@ -16,3 +18,4 @@ def enviar_a_microservicio(ruta_imagen, url_microservicio):
     except Exception as e:
         logging.exception("Error al conectar con el microservicio")
         return None
+"""

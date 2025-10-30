@@ -1,3 +1,4 @@
+"""
 from fastapi import FastAPI, File, UploadFile, HTTPException 
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
@@ -72,3 +73,4 @@ async def predict(file: UploadFile = File(...)):
         "grado_retinopatia": grado,
         "confianza": round(confidence, 4)
     }
+"""

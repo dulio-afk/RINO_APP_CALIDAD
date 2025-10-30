@@ -1,3 +1,4 @@
+"""
 import fitz  # PyMuPDF
 from google.generativeai import GenerativeModel, configure
 from Aplicacion_Web.modelos.documento import Documento
@@ -64,3 +65,4 @@ def extraer_texto_por_id_documento(id_documento: int) -> str:
 
     analisis = generar_analisis_clinico(texto, nombre_documento=ruta_estandarizada.split("/")[-1])
     return analisis
+"""

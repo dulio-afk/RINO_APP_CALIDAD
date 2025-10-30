@@ -1,6 +1,8 @@
-import json
-import re
-from google.generativeai import GenerativeModel, configure
+
+
+#import json
+#import re
+#from google.generativeai import GenerativeModel, configure
 
 # Configurar Gemini (solo una vez)
 configure(api_key="AIzaSyAVvi2N0McSfzmBiBryYI24gfsjgU1EpYc")

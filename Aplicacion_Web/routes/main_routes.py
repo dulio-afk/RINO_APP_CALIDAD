@@ -1,3 +1,5 @@
+"""
+
 import base64
 from flask import current_app, jsonify, render_template, make_response, url_for
 import io
@@ -323,3 +325,4 @@ def descargar_pdf(id_paciente):
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = f'attachment; filename=Historial_{paciente.nombre}.pdf'
     return response
+    """

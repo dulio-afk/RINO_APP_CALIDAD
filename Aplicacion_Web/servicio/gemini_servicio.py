@@ -1,4 +1,5 @@
-from google.generativeai import GenerativeModel, configure
+
+# from google.generativeai import GenerativeModel, configure
 
 # Configura Gemini solo una vez
 configure(api_key="AIzaSyAVvi2N0McSfzmBiBryYI24gfsjgU1EpYc")

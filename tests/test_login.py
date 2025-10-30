@@ -21,7 +21,6 @@ def app():
     with app.app_context():
         db.create_all()
 
-        # Crear usuario de prueba
         if Usuario.query.filter_by(correo='admin@demo.com').first() is None:
             hash_compatible = generate_password_hash('123456', method='pbkdf2:sha256')
             usuario = Usuario(

@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         PYTHON = 'python'
+        VENV_DIR = 'venv'
     }
 
     stages {
@@ -17,10 +18,21 @@ pipeline {
             steps {
                 echo '⚙️ Creando entorno virtual e instalando dependencias...'
                 bat '''
-                %PYTHON% -m venv venv
-                call venv\\Scripts\\activate
-                python -m pip install --upgrade pip
+                %PYTHON% -m venv %VENV_DIR%
+                call %VENV_DIR%\\Scripts\\activate
+                python -m pip install --upgrade pip setuptools wheel
+                echo Instalando dependencias principales...
                 pip install -r requirements.txt
+                '''
+            }
+        }
+
+        stage('Verificar instalación') {
+            steps {
+                echo '🔍 Verificando instalación de dependencias...'
+                bat '''
+                call %VENV_DIR%\\Scripts\\activate
+                python -m pip list
                 '''
             }
         }
@@ -29,8 +41,9 @@ pipeline {
             steps {
                 echo '🧪 Ejecutando pruebas Pytest...'
                 bat '''
-                call venv\\Scripts\\activate
-                pytest --maxfail=1 --disable-warnings -q --junitxml=tests\\reports\\resultados.xml
+                call %VENV_DIR%\\Scripts\\activate
+                if not exist tests\\reports mkdir tests\\reports
+                pytest -v --maxfail=1 --disable-warnings --junitxml=tests\\reports\\resultados.xml
                 '''
             }
         }
@@ -38,6 +51,7 @@ pipeline {
 
     post {
         always {
+            echo '📊 Publicando resultados de pruebas...'
             junit 'tests\\reports\\*.xml'
         }
         success {

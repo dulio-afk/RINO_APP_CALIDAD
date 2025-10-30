@@ -1,0 +1,45 @@
+name: Build and Analyze
+
+on:
+  push:
+    branches:
+      - main
+      - prueba-sonarqube
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build and analyze
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Evita clones superficiales para un mejor análisis
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          if exist requirements.txt (
+            pip install -r requirements.txt
+          ) else (
+            echo "No requirements.txt found, skipping dependency installation."
+          )
+
+      - name: Run SonarQube scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      # (Opcional) Detiene el flujo si la Quality Gate está en rojo
+      # - uses: SonarSource/sonarqube-quality-gate-action@v1
+      #   timeout-minutes: 5
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
